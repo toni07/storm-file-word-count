@@ -1,9 +1,8 @@
-package com.kaviddiss.storm;
+package testvaadin.aep.com.storm;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
-import com.google.common.base.Preconditions;
 
 /**
  * Topology class that sets up the Storm topology for this sample.
@@ -27,13 +26,18 @@ public class Topology {
 		final LocalCluster cluster = new LocalCluster();
 		cluster.submitTopology(TOPOLOGY_NAME, config, b.createTopology());
 
+		System.out.println("##p1");
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				cluster.killTopology(TOPOLOGY_NAME);
 				cluster.shutdown();
+				System.out.println("##p1z");
 			}
 		});
+
+		System.out.println("##p2");
 
 	}
 
