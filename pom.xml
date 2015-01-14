@@ -41,7 +41,7 @@
     </dependency>
     <dependency>
 	<groupId>org.apache.storm</groupId>
-	<artifactId>storm</artifactId>
+	<artifactId>storm-core</artifactId>
 	<version>0.9.3</version>
     </dependency>
   </dependencies>
@@ -68,20 +68,6 @@
     </plugins>
   </build>
 
-  <repositories>
-    <repository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </repository>
-    <repository>
-      <id>twitter4j.org</id>
-      <name>twitter4j.org Repository</name>
-      <url>http://twitter4j.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </repository>
-  </repositories>
 
 </project>
 
