@@ -1,4 +1,4 @@
-package com.kaviddiss.storm;
+package testvaadin.aep.com.storm;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -28,11 +28,13 @@ public class IgnoreWordsBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
+        System.out.println("##IgnoreWordsBolt prepare");
         this.collector = collector;
     }
 
     @Override
     public void execute(Tuple input) {
+        System.out.println("##IgnoreWordsBolt execute1");
         String lang = (String) input.getValueByField("lang");
         String word = (String) input.getValueByField("word");
         if (!IGNORE_LIST.contains(word)) {
@@ -42,6 +44,7 @@ public class IgnoreWordsBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        System.out.println("##IgnoreWordsBolt declareOutputFields");
         declarer.declare(new Fields("lang", "word"));
     }
 }
