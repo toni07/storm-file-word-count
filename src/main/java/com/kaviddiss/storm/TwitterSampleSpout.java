@@ -2,7 +2,7 @@
  * Taken from the storm-starter project on GitHub
  * https://github.com/nathanmarz/storm-starter/ 
  */
-package com.kaviddiss.storm;
+package testvaadin.aep.com.storm;
 
 import backtype.storm.Config;
 import backtype.storm.spout.SpoutOutputCollector;
@@ -12,75 +12,89 @@ import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
-import com.google.common.base.Preconditions;
-import twitter4j.*;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.impl.DefaultFileMonitor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Reads Twitter's sample feed using the twitter4j library.
- * @author davidk
+ * Reads a file whenever it is modified
+ * @author toni07
  */
-@SuppressWarnings({ "rawtypes", "serial" })
 public class TwitterSampleSpout extends BaseRichSpout {
 
 	private SpoutOutputCollector collector;
-    private LinkedBlockingQueue<Status> queue;
-    private TwitterStream twitterStream;
+	private LinkedBlockingQueue<FakeObject> queue;
+	private final int POLL_INTERVAL = 50;
+	private FileSystemManager fsManager;
+	private FileObject listenedFile;
+	private DefaultFileMonitor fm;
 
 	@Override
-	public void open(Map conf, TopologyContext context,
-			SpoutOutputCollector collector) {
-		queue = new LinkedBlockingQueue<Status>(1000);
+	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+
+		queue = new LinkedBlockingQueue<FakeObject>(1000);
 		this.collector = collector;
+		System.out.println("##p1a");
+		final LastReadLine lastLineRead = new LastReadLine(0);
+		try {
+			fsManager = VFS.getManager();
+			listenedFile = fsManager.resolveFile("C:/dev/logs/prediwaste-test.log");
 
-		StatusListener listener = new StatusListener() {
-			@Override
-			public void onStatus(Status status) {
-				queue.offer(status);
+			//1st parse of the file
+			List<String> newLineList = FileIncrementalReader.readToString(listenedFile, lastLineRead);
+			for (String s : newLineList) {
+				final FakeObject obj = new FakeObject(s, s);
+				queue.offer(obj);
 			}
 
-			@Override
-			public void onDeletionNotice(StatusDeletionNotice sdn) {
-			}
+			//then listen for any change
+			fm = new DefaultFileMonitor(new FileListener(){
+				@Override
+				public void fileCreated(FileChangeEvent fileChangeEvent) throws Exception {}
 
-			@Override
-			public void onTrackLimitationNotice(int i) {
-			}
+				@Override
+				public void fileDeleted(FileChangeEvent fileChangeEvent) throws Exception {}
 
-			@Override
-			public void onScrubGeo(long l, long l1) {
-			}
+				@Override
+				public void fileChanged(FileChangeEvent fileChangeEvent) throws Exception {
+					List<String> newLineList = FileIncrementalReader.readToString(listenedFile, lastLineRead);
+					for (String s : newLineList) {
+						final FakeObject obj = new FakeObject(s, s);
+						queue.offer(obj);
+					}
+				}
+			});
 
-            @Override
-            public void onStallWarning(StallWarning stallWarning) {
-            }
+			fm.setRecursive(true);
+			fm.addFile(listenedFile);
+			fm.start();
+		}
+		catch (FileSystemException e) {
+			e.printStackTrace();
+		}
 
-            @Override
-			public void onException(Exception e) {
-			}
-		};
-
-        TwitterStreamFactory factory = new TwitterStreamFactory();
-		twitterStream = factory.getInstance();
-		twitterStream.addListener(listener);
-		twitterStream.sample();
+		System.out.println("##p1b");
 	}
 
 	@Override
 	public void nextTuple() {
-		Status ret = queue.poll();
+		//System.out.println("##p1c");
+		final FakeObject ret = queue.poll();
 		if (ret == null) {
-			Utils.sleep(50);
-        } else {
+			Utils.sleep(POLL_INTERVAL);
+		}
+		else {
 			collector.emit(new Values(ret));
 		}
 	}
 
 	@Override
 	public void close() {
-		twitterStream.shutdown();
+		System.out.println("##listener stop");
+		fm.stop();
 	}
 
 	@Override
