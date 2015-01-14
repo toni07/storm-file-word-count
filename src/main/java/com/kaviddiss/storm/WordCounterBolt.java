@@ -1,4 +1,4 @@
-package com.kaviddiss.storm;
+package testvaadin.aep.com.storm;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -49,6 +49,7 @@ public class WordCounterBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
+        System.out.println("##WordCounterBolt execute3");
         String word = (String) input.getValueByField("word");
         Long count = counter.get(word);
         count = count == null ? 1L : count + 1;
@@ -68,6 +69,7 @@ public class WordCounterBolt extends BaseRichBolt {
 
     private void publishTopList() {
         // calculate top list:
+        System.out.println("##WordCounterBolt publishTopList");
         SortedMap<Long, String> top = new TreeMap<Long, String>();
         for (Map.Entry<String, Long> entry : counter.entrySet()) {
             long count = entry.getValue();
