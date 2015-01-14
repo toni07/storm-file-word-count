@@ -1,4 +1,4 @@
-package com.kaviddiss.storm;
+package testvaadin.aep.com.storm;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -7,7 +7,6 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import twitter4j.Status;
 
 import java.util.Map;
 
@@ -25,14 +24,16 @@ public class WordSplitterBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
+        System.out.println("##WordSplitterBolt prepare");
         this.collector = collector;
     }
 
     @Override
     public void execute(Tuple input) {
-        Status tweet = (Status) input.getValueByField("tweet");
-        String lang = tweet.getUser().getLang();
-        String text = tweet.getText().replaceAll("\\p{Punct}", " ").toLowerCase();
+        System.out.println("##WordSplitterBolt execute2");
+        final FakeObject obj = (FakeObject) input.getValueByField("tweet");
+        String lang = obj.getLineContent();
+        String text = obj.getLineContent2();
         String[] words = text.split(" ");
         for (String word : words) {
             if (word.length() >= minWordLength) {
@@ -43,6 +44,7 @@ public class WordSplitterBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        System.out.println("##WordSplitterBolt declareOutputFields");
         declarer.declare(new Fields("lang", "word"));
     }
 }
